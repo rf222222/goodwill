@@ -1,9 +1,10 @@
+import "./admin/Administered.sol";
 import "./ConvertLib.sol";
 import "./GoodwillCoin.sol";
 
 pragma solidity ^0.4.11; //We have to specify what version of the compiler this code will use
 
-contract Conference {
+contract Conference is Administered {
   using ConvertLib for *;
   
   // We use the struct datatype to store the voter information.
@@ -31,25 +32,18 @@ contract Conference {
   mapping (bytes32 => mapping(address => applicant[])) private registerInfo;
   mapping (address => applicant[]) private applicantInfo;
   mapping (bytes32 => conference) private conferenceInfo;
-  mapping (address => bool) private isAdmin;
    
   GoodwillCoin gc;
   
-  function Conference(GoodwillCoin _gc, address[] adminAddress) {
+  function Conference(GoodwillCoin _gc, address[] adminAddress) 
+      Administered(adminAddress)
+  {
+  
     gc=_gc;
     
-    for (uint i=0; i < adminAddress.length; i++) {
-        isAdmin[adminAddress[i]]=true;
-    }
-    
-  }
-
-  function addAdmin(address admin) {
-        assert(isAdmin[msg.sender]);
-        isAdmin[admin]=true;
   }
   
-  function attendAdmin(address voterAddress, bytes32 inst, uint cost , bytes32 regType, string desc) returns (bool) {
+  function attendAdmin(address voterAddress, bytes32 inst, uint cost , bytes32 regType, string desc) onlyAdmin returns (bool) {
       assert(isAdmin[msg.sender]);
       conferenceInfo[inst].fees[regType]=cost;
       
@@ -114,7 +108,7 @@ contract Conference {
   }
 
   
-  function conferenceAuth(address voterAddress, bytes32 inst, bytes32 instName, uint instId) returns (bool) {
+  function conferenceAuth(address voterAddress, bytes32 inst, bytes32 instName, uint instId) onlyAdmin returns (bool) {
   
       assert(isAdmin[msg.sender]);
       
@@ -127,7 +121,7 @@ contract Conference {
       
   }
   
-  function feeAuth(address voterAddress, bytes32 inst, bytes32 regType, uint cost) returns (bool) {
+  function feeAuth(address voterAddress, bytes32 inst, bytes32 regType, uint cost) onlyAdmin returns (bool) {
   
       assert(isAdmin[msg.sender]);
       

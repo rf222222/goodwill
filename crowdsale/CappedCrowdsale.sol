@@ -22,7 +22,7 @@ contract CappedCrowdsale is Crowdsale {
   // overriding Crowdsale#validPurchase to add extra cap logic
   // @return true if investors can buy at the moment
   function validPurchase() internal constant returns (bool) {
-    bool withinCap = tokenMinted.add(convertToCoin(msg.value)) <= cap;
+    bool withinCap = tokenMinted.add(convertToToken(msg.value)) <= cap;
     return super.validPurchase() && withinCap;
   }
 

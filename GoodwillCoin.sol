@@ -27,8 +27,6 @@ contract GoodwillCoin is MintableToken {
 
 
     uint256 public rate; // Price per token
-        
-    address[] admins;
     
     enum Types {
         Transfer,
@@ -63,13 +61,14 @@ contract GoodwillCoin is MintableToken {
     function GoodwillCoin(uint256 _tokens, uint pricePerToken, address[] adminAddress) 
         Administered(adminAddress)
     {
+    
         totalSupply = _tokens;
-        rate    = pricePerToken;
-        
-        admins = adminAddress;
-        
+    
+        rate    = pricePerToken;    
+        admins = adminAddress;    
         balances[admins[0]] = _tokens;                  // Give the creator all initial tokens
-
+        
+        
         name = 'GOODWILL';                               // Set the name for display purposes
         decimals = 6;
         symbol = 'GOODWILL';               
@@ -77,10 +76,6 @@ contract GoodwillCoin is MintableToken {
         
     }
 
-    function addAdmin(address admin) onlyAdmin {
-        isAdmin[admin]=true;
-        admins.push(admin);
-    }
     
     function setRate(uint _rate) onlyAdmin returns (uint){
         rate=_rate;
@@ -314,13 +309,6 @@ contract GoodwillCoin is MintableToken {
         return true;
     }
     
-    
-    function convertToWei(uint256 amount) returns (uint256)
-    {
-    		return amount.mul(rate);
-    }
-    
-    
     // @return true if the transaction can buy tokens
     function validPurchase() internal constant returns (bool) {
         bool nonZeroPurchase = msg.value != 0;
@@ -359,27 +347,30 @@ contract GoodwillCoin is MintableToken {
         uint256 weiAmount = msg.value;
     
         // calculate token amount to be created
-        uint256 tokens = weiAmount.mul(rate);
+        uint256 tokens = convertToToken(weiAmount);
     
         if (balances[admins[0]] > tokens && tokens > 0) {
+        
             tokensBought[beneficiary] = ConvertLib.safeAdd(tokensBought[beneficiary], tokens);
-            //tokensSoldInWei[admins[0]] = ConvertLib.safeAdd(tokensSoldInWei[admins[0]], weiAmount);
             
             mint(beneficiary, tokens);
-            //balances[beneficiary] = ConvertLib.safeAdd(balances[beneficiary], tokens);
-            //balances[admins[0]] = ConvertLib.safeSub(balances[beneficiary], tokens);
-
-            
-            //Transfer(admins[0], beneficiary, tokens);
-                
-            //transaction memory v=transaction(admins[0], beneficiary, now, tokens, Types.Transfer);
-            //transactions[admins[0]].push(v);
-            //transactions[beneficiary].push(v);
             
             forwardFunds(admins[0]);
+        
         }        
         
     }
+    
+    function convertToToken(uint256 amount) returns (uint256)
+    {
+    		return amount.div(rate);
+    }
+    
+    function convertToWei(uint256 amount) returns (uint256)
+    {
+    		return amount.mul(rate);
+    }
+    
     
     // send ether to the fund collection wallet
     // override to create custom fund forwarding mechanisms

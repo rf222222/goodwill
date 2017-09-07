@@ -8,7 +8,8 @@ pragma solidity ^0.4.11;
  */
 contract Administered {
   mapping (address => bool) isAdmin;
-
+    
+  address[] admins;
 
   /**
    * @dev The Ownable constructor sets the original `owner` of the contract to the sender
@@ -18,6 +19,7 @@ contract Administered {
     for (uint i=0; i < adminAddress.length; i++) {
         isAdmin[adminAddress[i]]=true;
     } 
+    admins=adminAddress;
   }
 
 
@@ -29,10 +31,16 @@ contract Administered {
     _;
   }
   
-  function addAdmin(address admin) {
+  function addAdmin(address admin) onlyAdmin {
         assert(isAdmin[msg.sender]);
         isAdmin[admin]=true;
+        admins.push(admin);
   }
-    
+
+  function getAdmins() constant returns (address[]) {
+      assert(isAdmin[msg.sender]);
+      return admins;
+  }
+
 
 }

@@ -59,6 +59,9 @@ contract Crowdsale is Administered {
     wallet = _wallet;
   }
 
+  function getNow() constant returns (uint256) {
+      return now;
+  }
   
   // fallback function can be used to buy tokens
   function () payable {
@@ -73,7 +76,7 @@ contract Crowdsale is Administered {
     uint256 weiAmount = msg.value;
 
     // calculate token amount to be created
-    uint256 tokens = convertToCoin(weiAmount);
+    uint256 tokens = convertToToken(weiAmount);
     
     // update state
     weiRaised = weiRaised.add(weiAmount);
@@ -87,10 +90,16 @@ contract Crowdsale is Administered {
     forwardFunds();
   }
 
-  function convertToCoin(uint256 amount) returns (uint256)
+  function convertToToken(uint256 amount) returns (uint256)
   {
-    		return amount.div(rate);
+		return amount.div(rate);
   }
+
+  function convertToWei(uint256 amount) returns (uint256)
+  {
+		return amount.mul(rate);
+  }
+
   
   // send ether to the fund collection wallet
   // override to create custom fund forwarding mechanisms

@@ -1,9 +1,10 @@
+import "./admin/Administered.sol";
 import "./ConvertLib.sol";
 import "./Deal.sol";
 
 pragma solidity ^0.4.11; //We have to specify what version of the compiler this code will use
 
-contract Escrow {
+contract Escrow is Administered {
   using ConvertLib for *;
   
   enum Stages {
@@ -41,41 +42,26 @@ contract Escrow {
   mapping (bytes32 => mapping(address => signature[])) private escrowSignInfo;
   mapping (address => signature[]) private signatureInfo;
   mapping (bytes32 => escrow) private escrowInfo;
-  mapping (address => bool) private isAdmin;
 
   Deal deal;
   
-  function Escrow(Deal _deal, address[] adminAddress) {
+  function Escrow(Deal _deal, address[] adminAddress) 
+      Administered(adminAddress)
+  {
 
     deal=_deal;
     
-    for (uint i=0; i < adminAddress.length; i++) {
-        isAdmin[adminAddress[i]]=true;
-    }
-    
-    
   }
   
-  function addAdmin(address admin) {
-        assert(isAdmin[msg.sender]);
-        isAdmin[admin]=true;
-  }
-
-  function signAdmin(address voterAddress, bytes32 inst, uint cost , bytes32 regType, string desc) returns (bool, uint) {
-      assert(isAdmin[msg.sender]);
+  function signAdmin(address voterAddress, bytes32 inst, uint cost , bytes32 regType, string desc) onlyAdmin returns (bool, uint) {
+      //assert(isAdmin[msg.sender]);
       
       if (deal.adminReserveFrom(voterAddress, inst, regType, cost)) {
       
           signature memory v=signature(voterAddress, now, cost, Stages.ReserveSent, regType, desc, now, escrowInfo[inst].escrowSignHistory.length);
-
-          escrowInfo[inst].escrowSignHistory.push(v);
-          
-          //escrowInfo[inst].tokenReceived=ConvertLib.safeAdd(escrowInfo[inst].tokenReceived,cost);
-          
-          escrowSignInfo[inst][voterAddress].push(v);
-        
-          escrowSignStageInfo[inst][voterAddress][v.stageIdx].push(v);
-          
+          escrowInfo[inst].escrowSignHistory.push(v);              
+          escrowSignInfo[inst][voterAddress].push(v);        
+          escrowSignStageInfo[inst][voterAddress][v.stageIdx].push(v);          
           signatureInfo[voterAddress].push(v);
           
           return (true, v.stageIdx);
@@ -92,8 +78,9 @@ contract Escrow {
       return answerAdmin(msg.sender, inst, idx, answer, regType, desc);  
   }
   
-  function answerAdmin(address voterAddress, bytes32 inst, uint idx , bool answer, bytes32 regType, string desc) returns (bool) {
-      assert(isAdmin[msg.sender]);
+  function answerAdmin(address voterAddress, bytes32 inst, uint idx , bool answer, bytes32 regType, string desc) onlyAdmin returns (bool) {
+      //assert(isAdmin[msg.sender]);
+      
       signature memory sign=escrowInfo[inst].escrowSignHistory[idx];
       if (deal.isHost(inst, voterAddress)) {
               if (sign.actionStage == Stages.ReserveSent) {
@@ -152,8 +139,6 @@ contract Escrow {
      sign.actionDetails = sign.actionDetails.toSlice().concat(desc.toSlice());                
      escrowInfo[inst].escrowSignHistory[idx]=sign;
      
-     //escrowSignInfo[inst][voterAddress].push(sign);
-     
      signatureInfo[voterAddress].push(sign);
 
      sign.actionDetails = desc;                              
@@ -177,14 +162,12 @@ contract Escrow {
     
     uint[] memory timestamp=new uint[](signatures.length);
     uint[] memory stage=new uint[](signatures.length);
-    //bytes32[] memory regType=new bytes32[](signatures.length);
     string memory b3;
    
     for (uint i=0; i < signatures.length; i++) {
               
       timestamp[i]=signatures[i].signatureDate;
       stage[i]=uint(signatures[i].actionStage);
-      //regType[i]=signatures[i].regType;
       b3 = b3.toSlice().concat(signatures[i].actionDetails.toSlice());
       b3 = b3.toSlice().concat('~~~'.toSlice());
       

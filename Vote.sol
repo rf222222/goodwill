@@ -1,9 +1,10 @@
+import "./admin/Administered.sol";
 import "./ConvertLib.sol";
 import "./GoodwillCoin.sol";
 
 pragma solidity ^0.4.11; //We have to specify what version of the compiler this code will use
 
-contract Vote { 
+contract Vote is Administered { 
   using ConvertLib for *;
   // We use the struct datatype to store the voter information.
   
@@ -27,23 +28,16 @@ contract Vote {
   
   mapping (bytes32 => vote_tally[]) private eventHistory;
   
-  mapping (address => bool) private isAdmin;
-  
   GoodwillCoin gc;
   
-  function Vote(GoodwillCoin _gc, address[] adminAddress) {
+  function Vote(GoodwillCoin _gc, address[] adminAddress) 
+      Administered(adminAddress)
+  {
+ 
     gc=_gc;
     
-    for (uint i=0; i < adminAddress.length; i++) {
-        isAdmin[adminAddress[i]]=true;
-    }
   }
 
-  function addAdmin(address admin) {
-        assert(isAdmin[msg.sender]);
-        isAdmin[admin]=true;
-  }
-  
 
   function voteForCandidate(bytes32 eventInst, bytes32 dealInst, uint votesInTokens, string desc) returns (uint) {
     address user = msg.sender;

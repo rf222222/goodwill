@@ -1,10 +1,11 @@
+import "./admin/Administered.sol";
 import "./ConvertLib.sol";
 import "./GoodwillCoin.sol";
 import "./User.sol";
 
 pragma solidity ^0.4.11; //We have to specify what version of the compiler this code will use
 
-contract Admin is User {
+contract Admin is User, Administered {
   using ConvertLib for *;
   GoodwillCoin gc;
   
@@ -12,8 +13,6 @@ contract Admin is User {
   fund_request[] private fundApproveHistory;
   fund_request[] private fundRejectHistory;
     
-  mapping (address => bool) private isAdmin;
-  
   struct fund_request {
     address voterAddress;
     uint tokenRequest;
@@ -24,20 +23,13 @@ contract Admin is User {
     
   }
   
- 
-  function Admin(GoodwillCoin _gc, address[] adminAddress) {
+  function Admin(GoodwillCoin _gc, address[] adminAddress) 
+      Administered(adminAddress)
+  {
     gc=_gc;
-    for (uint i=0; i < adminAddress.length; i++) {
-        isAdmin[adminAddress[i]]=true;
-    } 
-    admins=adminAddress; 
+    
   }
 
-  function addAdmin(address admin) {
-        assert(isAdmin[msg.sender]);
-        isAdmin[admin]=true;
-  }
-  
   function requestFunding(uint votesInTokens, uint voterId, string voterName) returns (uint) {
      address user=msg.sender;
      voterInfo[user].voterId=voterId;
@@ -49,7 +41,7 @@ contract Admin is User {
     
   }
 
-  function approveFunding( uint fidx, bool decision, uint voterId, string voterName) returns (uint) {
+  function approveFunding( uint fidx, bool decision, uint voterId, string voterName) onlyAdmin returns (uint) {
     address user=msg.sender;
     
     assert(isAdmin[user]);
@@ -71,10 +63,12 @@ contract Admin is User {
         
         gc.mint(voter, votesInTokens);
             
-        //gc.adminTransfer(voter, votesInTokens, voterId, voterName);
         tokenGiven=votesInTokens;
+
     } else {
+
         fundRejectHistory.push(fundRequestHistory[fidx]);
+
     }
         
     return (tokenGiven);

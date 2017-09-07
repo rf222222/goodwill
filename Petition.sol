@@ -1,9 +1,10 @@
+import "./admin/Administered.sol";
 import "./ConvertLib.sol";
 import "./Deal.sol";
 
 pragma solidity ^0.4.11; //We have to specify what version of the compiler this code will use
 
-contract Donation {
+contract Petition is Administered {
   using ConvertLib for *;
   
   // We use the struct datatype to store the voter information.
@@ -16,45 +17,38 @@ contract Donation {
       
   }
   
-  struct donation {
+  struct petition {
   
-    signature[] donationSignHistory;
+    signature[] petitionSignHistory;
     bytes32 inst;
     uint tokenReceived;
      
   }
 
-  mapping (bytes32 => mapping(address => signature[])) private donationSignInfo;
+  mapping (bytes32 => mapping(address => signature[])) private petitionSignInfo;
   mapping (address => signature[]) private signatureInfo;
-  mapping (bytes32 => donation) private donationInfo;
-  mapping (address => bool) private isAdmin;
+  mapping (bytes32 => petition) private petitionInfo;
    
   Deal deal;
   
-  function Donation(Deal _deal, address[] adminAddress) {
+  function Petition(Deal _deal, address[] adminAddress) 
+      Administered(adminAddress)
+  {
+  
     deal=_deal;
     
-    for (uint i=0; i < adminAddress.length; i++) {
-        isAdmin[adminAddress[i]]=true;
-    }
-    
-  }
-  
-  function addAdmin(address admin) {
-        assert(isAdmin[msg.sender]);
-        isAdmin[admin]=true;
   }
 
-  function signAdmin(address voterAddress, bytes32 inst, uint cost , bytes32 regType, string desc) returns (bool) {
+  function signAdmin(address voterAddress, bytes32 inst, uint cost , bytes32 regType, string desc) onlyAdmin returns (bool) {
       assert(isAdmin[msg.sender]);
       
       if (deal.adminTransferFrom(voterAddress, inst, regType, cost)) {
           signature memory v=signature(voterAddress, now, cost, regType, desc);
-          donationInfo[inst].donationSignHistory.push(v);
-
-          donationInfo[inst].tokenReceived=ConvertLib.safeAdd(donationInfo[inst].tokenReceived,cost);
+          petitionInfo[inst].petitionSignHistory.push(v);
+            
+          petitionInfo[inst].tokenReceived=ConvertLib.safeAdd(petitionInfo[inst].tokenReceived,cost);
           
-          donationSignInfo[inst][voterAddress].push(v);
+          petitionSignInfo[inst][voterAddress].push(v);
           signatureInfo[voterAddress].push(v);
           return true;
       }
@@ -66,18 +60,17 @@ contract Donation {
       return signAdmin(voterAddress, inst, cost , regType, desc);
   }
   
-  
-  function donationSignHistory(bytes32 inst) constant returns (uint, uint[], uint[], bytes32[], bytes) {
+  function petitionSignHistory(bytes32 inst) constant returns (uint, uint[], uint[], bytes32[], bytes) {
     uint transactions=0;
     signature[] memory signatures;
     
     if (deal.isHost(inst, msg.sender)) {
-          transactions = donationInfo[inst].donationSignHistory.length;
-          signatures=donationInfo[inst].donationSignHistory;
+          transactions = petitionInfo[inst].petitionSignHistory.length;
+          signatures=petitionInfo[inst].petitionSignHistory;
           
     } else {
-          transactions = donationSignInfo[inst][msg.sender].length;
-          signatures=donationSignInfo[inst][msg.sender];
+          transactions = petitionSignInfo[inst][msg.sender].length;
+          signatures=petitionSignInfo[inst][msg.sender];
     
     }
     uint[] memory timestamp=new uint[](transactions);
@@ -99,7 +92,7 @@ contract Donation {
   
   function historyTotal(bytes32 inst, address voterAddress) constant returns (uint, uint, uint) { 
     
-    return (donationInfo[inst].donationSignHistory.length,  donationSignInfo[inst][voterAddress].length, signatureInfo[voterAddress].length);
+    return (petitionInfo[inst].petitionSignHistory.length,  petitionSignInfo[inst][voterAddress].length, signatureInfo[voterAddress].length);
     
   }
   

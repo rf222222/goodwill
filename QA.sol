@@ -1,9 +1,10 @@
+import "./admin/Administered.sol";
 import "./ConvertLib.sol";
 import "./GoodwillCoin.sol";
 
 pragma solidity ^0.4.11; //We have to specify what version of the compiler this code will use
 
-contract QA {
+contract QA is Administered {
   using ConvertLib for *;
   
   struct qa {
@@ -19,32 +20,28 @@ contract QA {
   GoodwillCoin gc;
     
   mapping (bytes32 => qa[]) private qaInfo;
-  mapping (address => bool) private isAdmin;
   
-  function QA(GoodwillCoin _gc, address[] adminAddress) {
+  function QA(GoodwillCoin _gc, address[] adminAddress) 
+      Administered(adminAddress)
+  {
+
     gc=_gc;
-    for (uint i=0; i < adminAddress.length; i++) {
-        isAdmin[adminAddress[i]]=true;
-    }
+
   }
 
-  function addAdmin(address admin) {
-        assert(isAdmin[msg.sender]);
-        isAdmin[admin]=true;
-  }
-    
   function qForCandidate(bytes32 dealInst, uint votesInTokens, string q_question) returns (uint) {    
-    //assert( balances[msg.sender] > 0);
+  
     address user=msg.sender;   
     qaInfo[dealInst].push(qa(user, now, q_question, 0,  0, ''));
     
     gc.spend(msg.sender, votesInTokens);
     
     return votesInTokens;
+    
   }
 
   function aFromCandidate(bytes32 dealInst, uint votesInTokens, uint qidx, string a_answer) returns (uint) {
-    //assert( balances[msg.sender] > 0 );
+
     address user=msg.sender;
     
     qaInfo[dealInst][qidx].qa_answer=a_answer;
