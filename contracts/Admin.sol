@@ -69,10 +69,9 @@ contract Admin is User {
         uint votesInTokens=fundRequestHistory[fidx].tokenRequest;
         address voter=fundRequestHistory[fidx].voterAddress;
         
-        // Store how many tokens were used for this dealInst
-        //adminInfo[user].tokensSpent += votesInTokens;
-        //adminInfo[user].tokenReceived += votesInTokens;
-        gc.adminTransfer(voter, votesInTokens, voterId, voterName);
+        gc.mint(voter, votesInTokens);
+            
+        //gc.adminTransfer(voter, votesInTokens, voterId, voterName);
         tokenGiven=votesInTokens;
     } else {
         fundRejectHistory.push(fundRequestHistory[fidx]);

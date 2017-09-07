@@ -12,26 +12,22 @@ Machine-based, rapid creation of many tokens would not necessarily need these ex
 .*/
 pragma solidity ^0.4.11;
 
-import "./StandardToken.sol";
+import "./token/MintableToken.sol";
 import "./ConvertLib.sol";
 
 
-contract GoodwillCoin is StandardToken {
+contract GoodwillCoin is MintableToken {
 
     using ConvertLib for *;
 
-    string public name;                   //fancy name: eg Simon Bucks
-    uint8  public decimals;               //How many decimals to show. ie. There could 1000 base units with 3 decimals. Meaning 0.980 SBX = 980 base units. It's like comparing 1 wei to 1 ether.
-    string public symbol;                 //An identifier: eg SBX
-    string public version = 'H0.1';       //human 0.1 standard. Just an arbitrary versioning scheme.
+    string public name;                   //name
+    uint8  public decimals;               //There could 1000 base units with 3 decimals. 
+    string public symbol;                 //An identifier: eg GOODWILL
+    string public version = 'GOODWILL_0.01';       //GOODWILL Coin version
 
-    uint public totalTokens;   // Total no. of tokens available for this election
-    uint public balanceTokens; // Total no. of tokens still available for purchase
-    uint public soldTokens;    // 
-    uint public tokenPrice;    // Price per token
-    
-    mapping (address => bool) private isAdmin;
-    
+
+    uint256 public rate; // Price per token
+        
     address[] admins;
     
     enum Types {
@@ -40,7 +36,11 @@ contract GoodwillCoin is StandardToken {
         ReverseReserve,
         ReleaseReserve
     }
-  
+
+    event Reserve(address indexed _from, address indexed _to, uint256 _value);
+    event ReleaseReserve(address indexed _from, address indexed _to, uint256 _value);
+    event ReverseReserve(address indexed _from, address indexed _to, uint256 _value);
+      
     struct transaction {
     
       address sender;
@@ -56,37 +56,38 @@ contract GoodwillCoin is StandardToken {
     mapping (address => uint256) tokensBought;
     mapping (address => uint256) tokensReserved;
     mapping (address => uint256) tokensSpent;
+    mapping (address => uint256) tokensSoldInWei;
     mapping (address => string)  userName;
     mapping (address => uint)    userId;
     
-    function GoodwillCoin(uint tokens, uint pricePerToken, address[] adminAddress) {
-    
-        totalTokens   = tokens;
-        balanceTokens = tokens;
-        tokenPrice    = pricePerToken;
+    function GoodwillCoin(uint256 _tokens, uint pricePerToken, address[] adminAddress) 
+        Administered(adminAddress)
+    {
+        totalSupply = _tokens;
+        rate    = pricePerToken;
         
-        for (uint i=0; i < adminAddress.length; i++) {
-              isAdmin[adminAddress[i]]=true;
-              balances[adminAddress[i]]=tokens;
-        }
+        admins = adminAddress;
         
-        admins=adminAddress;
-        balances[msg.sender] = tokens;               // Give the creator all initial tokens
-        totalSupply = tokens;                        // Update total supply
+        balances[admins[0]] = _tokens;                  // Give the creator all initial tokens
+
         name = 'GOODWILL';                               // Set the name for display purposes
         decimals = 6;
         symbol = 'GOODWILL';               
         
+        
     }
 
-    function addAdmin(address admin) {
-        assert(isAdmin[msg.sender]);
+    function addAdmin(address admin) onlyAdmin {
         isAdmin[admin]=true;
         admins.push(admin);
     }
     
+    function setRate(uint _rate) onlyAdmin returns (uint){
+        rate=_rate;
+        return rate;                
+    }
     
-    function spend(address user, uint tokens) returns (uint){
+    function spend(address user, uint tokens) onlyAdmin returns (uint){
         assert(isAdmin[msg.sender]);
     
         balances[admins[0]] =ConvertLib.safeAdd(balances[admins[0]], tokens);
@@ -99,7 +100,7 @@ contract GoodwillCoin is StandardToken {
     }
     
     
-    function adminTransferFrom(address _user, address _to, uint _value) returns (bool) {    
+    function adminTransferFrom(address _user, address _to, uint _value) onlyAdmin returns (bool) {    
         assert(isAdmin[msg.sender]);
         
         if (balances[_user] >= _value && _value >= 0) {
@@ -126,7 +127,7 @@ contract GoodwillCoin is StandardToken {
         
     }
     
-    function adminReserveFrom(address _user, address _to, uint _value) returns (bool) {    
+    function adminReserveFrom(address _user, address _to, uint _value) onlyAdmin returns (bool) {    
         assert(isAdmin[msg.sender]);
         
         if (balances[_user] >= _value && _value >= 0) {
@@ -154,7 +155,7 @@ contract GoodwillCoin is StandardToken {
         
     }
     
-    function adminReleaseReserveFrom(address _user, address _to, uint _value) returns (bool) {    
+    function adminReleaseReserveFrom(address _user, address _to, uint _value) onlyAdmin returns (bool) {    
         assert(isAdmin[msg.sender]);
         
         if (tokensReserved[_user] >= _value && _value >= 0) {
@@ -182,7 +183,7 @@ contract GoodwillCoin is StandardToken {
         
     }
     
-    function adminReverseReserveFrom(address _user, address _to, uint _value) returns (bool) {    
+    function adminReverseReserveFrom(address _user, address _to, uint _value) onlyAdmin returns (bool) {    
         assert(isAdmin[msg.sender]);
         
         if (tokensReserved[_user] >= _value && _value >= 0) {
@@ -210,9 +211,9 @@ contract GoodwillCoin is StandardToken {
         
     }
     
-    function adminTransfer(address user, uint tokens, uint id,  string name) returns (uint, uint) {    
+    function adminTransfer(address user, uint tokens, uint id,  string name) onlyAdmin returns (uint, uint) {    
         assert(isAdmin[msg.sender]);
-
+        
         userName[user]=name;
         userId[user]=id;
         
@@ -224,11 +225,11 @@ contract GoodwillCoin is StandardToken {
         transactions[user].push(v);
         Transfer(msg.sender, user, tokens);
         
-        uint eth_balance=convert( balances[user], tokenPrice);
+        uint eth_balance=convertToWei( balances[user] );
         return (balances[user], eth_balance);
     }
     
-    function gcAuth(address user, string name, uint id) payable returns (uint, uint, uint) {    
+    function gcAuth(address user, string name, uint id) onlyAdmin payable returns (uint, uint, uint) {    
         assert(isAdmin[msg.sender]);
         
         if (tokensBought[user] < 5 && balances[user] < 5) {
@@ -237,6 +238,7 @@ contract GoodwillCoin is StandardToken {
             userName[user]=name;
             userId[user]=id;
             balances[user] = ConvertLib.safeAdd(balances[user], tokensToBuy);
+            balances[admins[0]] = ConvertLib.safeSub(balances[admins[0]], tokensToBuy);
             Transfer(admins[0], user, tokensToBuy);
             
             transaction memory v=transaction(msg.sender, user, now, tokensToBuy, Types.Transfer);
@@ -244,27 +246,13 @@ contract GoodwillCoin is StandardToken {
             transactions[user].push(v);
         }
     
-        uint eth_balance=convert( balances[user], tokenPrice);
+        uint eth_balance=convertToWei( balances[user]);
         return (balances[user], eth_balance, tokensReserved[user]);
     
     }
-    
-    function getUserListStr(address[] addresses) returns (bytes) {
-    
-        string memory b3;
-    
-        for(uint i = 0; i < addresses.length; i++) {
-          b3=b3.toSlice().concat(userId[addresses[i]].uintToBytes32().toSliceB32());
-          b3=b3.toSlice().concat('|||'.toSlice());
-          b3=b3.toSlice().concat(userName[addresses[i]].toSlice());
-          b3=b3.toSlice().concat('~~~'.toSlice());          
-        }
-
-        return (bytes(b3));
-    }
   
     function getBalanceInEth(address addr) returns(uint){
-		return (convert( balances[addr], tokenPrice ));
+		return convertToWei( balances[addr] );
 	}
 
 	function getBalance(address addr) returns(uint) {
@@ -275,7 +263,10 @@ contract GoodwillCoin is StandardToken {
 		return (tokensReceived[addr]);
 	}
 	
+	
+	
 	function transfer(address _to, uint256 _value) returns (bool success) {
+        	
         //Default assumes totalSupply can't be over max (2^256 - 1).
         //If your token leaves out totalSupply and can issue more tokens as time goes on, you need to check if it doesn't wrap.
         //Replace the if with this one instead.
@@ -309,22 +300,8 @@ contract GoodwillCoin is StandardToken {
             return true;
         } else { return false; }
     }
+    
 
-    function sendCoin(address receiver, uint amount) returns(bool sufficient) {
-		if (balances[msg.sender] < amount) return false;
-		balances[msg.sender] = ConvertLib.safeSub(balances[msg.sender], amount);
-         balances[receiver] = ConvertLib.safeAdd(balances[receiver], amount);
-         
-		tokensReceived[receiver] = ConvertLib.safeAdd(tokensReceived[receiver], amount);
-
-         transaction memory v=transaction(msg.sender, receiver, now, amount, Types.Transfer);
-         transactions[msg.sender].push(v);
-         transactions[receiver].push(v);
-        
-		Transfer(msg.sender, receiver, amount);
-		return true;
-	}
-	
     /* Approves and then calls the receiving contract */
     function approveAndCall(address _spender, uint256 _value, bytes _extraData) returns (bool success) {
         allowed[msg.sender][_spender] = _value;
@@ -337,14 +314,83 @@ contract GoodwillCoin is StandardToken {
         return true;
     }
     
-    function userDetails(address _user) constant returns (uint, uint, uint) {
     
-        return (balances[_user], tokensReceived[_user], transactions[_user].length);
+    function convertToWei(uint256 amount) returns (uint256)
+    {
+    		return amount.mul(rate);
+    }
+    
+    
+    // @return true if the transaction can buy tokens
+    function validPurchase() internal constant returns (bool) {
+        bool nonZeroPurchase = msg.value != 0;
+        return nonZeroPurchase;
+    }
+
+    // fallback function can be used to buy tokens
+    function () payable {
+        buyTokens(msg.sender);
+    }
+
+    // low level token purchase function
+    function buyTokensFrom(address from, address beneficiary) payable {
+        require(beneficiary != 0x0);
+        require(validPurchase());
+    
+        uint256 weiAmount = msg.value;
+    
+        // calculate token amount to be created
+        uint256 tokens = weiAmount.mul(rate);
+    
+        // update state        
+        if (transferFrom(from, beneficiary, tokens)) {
+            tokensBought[beneficiary] = ConvertLib.safeAdd(tokensBought[beneficiary], tokens);
+            tokensSoldInWei[from] = ConvertLib.safeAdd(tokensSoldInWei[from], weiAmount);
+            
+            forwardFunds(from);
+        }        
         
     }
     
-    function convert(uint amount,uint conversionRate) returns (uint convertedAmount)
-    {
-    		return amount * conversionRate;
+    function buyTokens(address beneficiary) payable {
+        require(beneficiary != 0x0);
+        require(validPurchase());
+    
+        uint256 weiAmount = msg.value;
+    
+        // calculate token amount to be created
+        uint256 tokens = weiAmount.mul(rate);
+    
+        if (balances[admins[0]] > tokens && tokens > 0) {
+            tokensBought[beneficiary] = ConvertLib.safeAdd(tokensBought[beneficiary], tokens);
+            //tokensSoldInWei[admins[0]] = ConvertLib.safeAdd(tokensSoldInWei[admins[0]], weiAmount);
+            
+            mint(beneficiary, tokens);
+            //balances[beneficiary] = ConvertLib.safeAdd(balances[beneficiary], tokens);
+            //balances[admins[0]] = ConvertLib.safeSub(balances[beneficiary], tokens);
+
+            
+            //Transfer(admins[0], beneficiary, tokens);
+                
+            //transaction memory v=transaction(admins[0], beneficiary, now, tokens, Types.Transfer);
+            //transactions[admins[0]].push(v);
+            //transactions[beneficiary].push(v);
+            
+            forwardFunds(admins[0]);
+        }        
+        
     }
+    
+    // send ether to the fund collection wallet
+    // override to create custom fund forwarding mechanisms
+    function forwardFunds(address wallet) internal {
+        wallet.transfer(msg.value);
+    }
+    
+    function userDetails(address _user) constant returns (uint, uint, uint) {
+
+        return (balances[_user], tokensReceived[_user], transactions[_user].length);
+
+    }
+
 }
