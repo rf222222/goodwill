@@ -72,6 +72,11 @@ contract Crowdsale is Administered {
         rate=_rate;
         return rate;                
   }
+
+  function extendEndTime(uint256 _endTime) onlyAdmin returns (uint256){
+        endTime = _endTime;
+        return endTime;                
+  }
   
   // fallback function can be used to buy tokens
   function () payable {
