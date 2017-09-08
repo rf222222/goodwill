@@ -19,12 +19,12 @@ contract Crowdsale is Administered {
   // The token being sold
   MintableToken public token;
 
+  // amount of token mintedTokens
+  uint256 public tokenMinted;
+
   // start and end timestamps where investments are allowed (both inclusive)
   uint256 public startTime;
   uint256 public endTime;
-
-  // address where funds are collected
-  address public wallet;
 
   // how many token units a buyer gets per wei
   uint256 public rate;
@@ -32,8 +32,7 @@ contract Crowdsale is Administered {
   // amount of raised money in wei
   uint256 public weiRaised;
 
-  // amount of token minted
-  uint256 public tokenMinted;
+  
   /**
    * event for token purchase logging
    * @param purchaser who paid for the tokens
@@ -44,33 +43,48 @@ contract Crowdsale is Administered {
   event TokenPurchase(address indexed purchaser, address indexed beneficiary, uint256 value, uint256 amount);
 
 
-  function Crowdsale(MintableToken _token, uint256 _startTime, uint256 _endTime, uint256 _rate, address _wallet, address[] adminAddress) 
+  function Crowdsale(MintableToken _token, uint256 _startTime, uint256 _endTime, uint256 _rate, uint256 _tokenMinted, address[] adminAddress) 
     Administered(adminAddress)
   {
     //require(_startTime >= now);
     require(_endTime >= _startTime);
     require(_rate > 0);
-    require(_wallet != 0x0);
+    require(admins[0] != 0x0);
 
     token = _token;
     startTime = _startTime;
     endTime = _endTime;
     rate = _rate;
-    wallet = _wallet;
+    tokenMinted = _tokenMinted;
+    
   }
 
   function getNow() constant returns (uint256) {
       return now;
   }
   
+  function getTokensMinted() constant returns (uint256) {
+      return tokenMinted;
+  }
+  
+  function setRate(uint256 _rate) onlyAdmin returns (uint256){
+        token.setRate(_rate);
+        rate=_rate;
+        return rate;                
+  }
+  
   // fallback function can be used to buy tokens
   function () payable {
+  
     buyTokens(msg.sender);
+    
   }
 
   // low level token purchase function
   function buyTokens(address beneficiary) payable {
+  
     require(beneficiary != 0x0);
+    
     require(validPurchase());
 
     uint256 weiAmount = msg.value;
@@ -80,19 +94,15 @@ contract Crowdsale is Administered {
     
     // update state
     weiRaised = weiRaised.add(weiAmount);
-
-    token.mint(beneficiary, tokens);
     
-    tokenMinted.add(tokens);
+    tokenMinted = tokenMinted.add(tokens);
+
+    token.mint(beneficiary, tokens);    
     
     TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
 
     forwardFunds();
-  }
-
-  function convertToToken(uint256 amount) returns (uint256)
-  {
-		return amount.div(rate);
+    
   }
 
   function convertToWei(uint256 amount) returns (uint256)
@@ -100,11 +110,16 @@ contract Crowdsale is Administered {
 		return amount.mul(rate);
   }
 
+  function convertToToken(uint256 amount) returns (uint256)
+  {
+		return amount.div(rate);
+  }
+
   
   // send ether to the fund collection wallet
   // override to create custom fund forwarding mechanisms
   function forwardFunds() internal {
-    wallet.transfer(msg.value);
+    admins[0].transfer(msg.value);
   }
 
   // @return true if the transaction can buy tokens

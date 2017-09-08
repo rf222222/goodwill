@@ -19,7 +19,18 @@ contract MintableToken is StandardToken, Administered {
   event MintReopened();
   bool public mintingFinished = false;
 
-
+  uint256 public rate; // Price per token
+  
+  function MintableToken(uint256 _rate) 
+  {
+        rate=_rate;
+  }
+  
+  function setRate(uint256 _rate) onlyAdmin returns (uint256){
+        rate=_rate;
+        return rate;                
+  }
+    
   modifier canMint() {
     require(!mintingFinished);
     _;

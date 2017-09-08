@@ -18,10 +18,10 @@ import "./GoodwillCoin.sol";
  */
 contract ICO is CappedCrowdsale {
 
-  function ICO(MintableToken _token, uint256 _startTime, uint256 _endTime, uint256 _rate, uint256 _cap, address _wallet, address[] adminAddress)
+  function ICO(MintableToken _token, uint256 _startTime, uint256 _endTime, uint256 _rate, uint256 _cap, uint256 _mintedTokens, address[] adminAddress)
     Administered(adminAddress)
     CappedCrowdsale(_cap, adminAddress)
-    Crowdsale(_token, _startTime, _endTime, _rate, _wallet, adminAddress)
+    Crowdsale(_token, _startTime, _endTime, _rate, _mintedTokens, adminAddress)
   {
     
   }

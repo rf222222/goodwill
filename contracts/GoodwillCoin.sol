@@ -13,11 +13,11 @@ Machine-based, rapid creation of many tokens would not necessarily need these ex
 pragma solidity ^0.4.11;
 
 import "./token/MintableToken.sol";
+import "./math/SafeMath.sol";
 import "./ConvertLib.sol";
 
 
 contract GoodwillCoin is MintableToken {
-
     using ConvertLib for *;
 
     string public name;                   //name
@@ -25,9 +25,6 @@ contract GoodwillCoin is MintableToken {
     string public symbol;                 //An identifier: eg GOODWILL
     string public version = 'GOODWILL_0.01';       //GOODWILL Coin version
 
-
-    uint256 public rate; // Price per token
-    
     enum Types {
         Transfer,
         Reserve,
@@ -49,25 +46,22 @@ contract GoodwillCoin is MintableToken {
             
     }
   
-    mapping (address => transaction[]) transactions;
-    mapping (address => uint256) tokensReceived;
-    mapping (address => uint256) tokensBought;
-    mapping (address => uint256) tokensReserved;
-    mapping (address => uint256) tokensSpent;
-    mapping (address => uint256) tokensSoldInWei;
-    mapping (address => string)  userName;
-    mapping (address => uint)    userId;
+    mapping (address => transaction[])   public transactions;
+    mapping (address => uint256) public  tokensReceived;
+    mapping (address => uint256) public  tokensBought;
+    mapping (address => uint256) public  tokensReserved;
+    mapping (address => uint256) public  tokensSpent;
+    mapping (address => uint256) public  tokensSoldInWei;
+    mapping (address => string)  public   userName;
+    mapping (address => uint)    public    userId;
     
-    function GoodwillCoin(uint256 _tokens, uint pricePerToken, address[] adminAddress) 
+    function GoodwillCoin(uint256 _tokens, uint256 _rate, address[] adminAddress) 
         Administered(adminAddress)
+        MintableToken(_rate)
     {
     
-        totalSupply = _tokens;
-    
-        rate    = pricePerToken;    
-        admins = adminAddress;    
-        balances[admins[0]] = _tokens;                  // Give the creator all initial tokens
-        
+        admins  = adminAddress;    
+        mint(admins[0], _tokens);        
         
         name = 'GOODWILL';                               // Set the name for display purposes
         decimals = 6;
@@ -76,12 +70,6 @@ contract GoodwillCoin is MintableToken {
         
     }
 
-    
-    function setRate(uint _rate) onlyAdmin returns (uint){
-        rate=_rate;
-        return rate;                
-    }
-    
     function spend(address user, uint tokens) onlyAdmin returns (uint){
         assert(isAdmin[msg.sender]);
     
@@ -326,9 +314,9 @@ contract GoodwillCoin is MintableToken {
         require(validPurchase());
     
         uint256 weiAmount = msg.value;
-    
+
         // calculate token amount to be created
-        uint256 tokens = weiAmount.mul(rate);
+        uint256 tokens = convertToToken(weiAmount);
     
         // update state        
         if (transferFrom(from, beneficiary, tokens)) {
@@ -343,13 +331,13 @@ contract GoodwillCoin is MintableToken {
     function buyTokens(address beneficiary) payable {
         require(beneficiary != 0x0);
         require(validPurchase());
-    
+        
         uint256 weiAmount = msg.value;
-    
+
         // calculate token amount to be created
         uint256 tokens = convertToToken(weiAmount);
     
-        if (balances[admins[0]] > tokens && tokens > 0) {
+        if (tokens > 0) {
         
             tokensBought[beneficiary] = ConvertLib.safeAdd(tokensBought[beneficiary], tokens);
             
@@ -361,17 +349,16 @@ contract GoodwillCoin is MintableToken {
         
     }
     
-    function convertToToken(uint256 amount) returns (uint256)
-    {
-    		return amount.div(rate);
-    }
-    
     function convertToWei(uint256 amount) returns (uint256)
     {
-    		return amount.mul(rate);
+		return amount.mul(rate);
     }
-    
-    
+
+    function convertToToken(uint256 amount) returns (uint256)
+    {
+		return amount.div(rate);
+    }
+
     // send ether to the fund collection wallet
     // override to create custom fund forwarding mechanisms
     function forwardFunds(address wallet) internal {

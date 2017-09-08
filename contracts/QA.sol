@@ -60,7 +60,6 @@ contract QA is Administered {
     
     address[] memory q_userAddress=new address[](transactions);
     uint[] memory questionDate=new uint[](transactions);
-    uint[] memory ids=new uint[](transactions);
     string memory b3;
     
     for(uint i = 0; i < qaInfo[dealInst].length; i++) {
@@ -82,8 +81,6 @@ contract QA is Administered {
 
     address[] memory a_userAddress=new address[](transactions);
     uint[] memory answerDate=new uint[](transactions);
-
-    uint[] memory ids=new uint[](transactions);
     string memory b3;
 
     for(uint i = 0; i < qaInfo[dealInst].length; i++) {

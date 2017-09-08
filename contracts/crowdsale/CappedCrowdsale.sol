@@ -9,7 +9,7 @@ import './Crowdsale.sol';
  */
 contract CappedCrowdsale is Crowdsale {
   using SafeMath for uint256;
-
+  
   uint256 public cap;
 
   function CappedCrowdsale(uint256 _cap, address[] adminAddress)
