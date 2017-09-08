@@ -64,7 +64,7 @@ contract GoodwillCoin is MintableToken {
         mint(admins[0], _tokens);        
         
         name = 'GOODWILL';                               // Set the name for display purposes
-        decimals = 6;
+        decimals = 0;
         symbol = 'GOODWILL';               
         
         
