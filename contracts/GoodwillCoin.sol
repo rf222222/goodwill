@@ -24,6 +24,7 @@ contract GoodwillCoin is MintableToken {
     uint8  public decimals;               //There could 1000 base units with 3 decimals. 
     string public symbol;                 //An identifier: eg GOODWILL
     string public version = 'GOODWILL_0.01';       //GOODWILL Coin version
+    address wallet;
 
     enum Types {
         Transfer,
@@ -61,7 +62,8 @@ contract GoodwillCoin is MintableToken {
     {
     
         admins  = adminAddress;    
-        mint(admins[0], _tokens);        
+        wallet  = admins[0];
+        mint(wallet, _tokens);        
         
         name = 'GOODWILL';                               // Set the name for display purposes
         decimals = 0;
@@ -73,10 +75,10 @@ contract GoodwillCoin is MintableToken {
     function spend(address user, uint tokens) onlyAdmin returns (uint){
         assert(isAdmin[msg.sender]);
     
-        balances[admins[0]] =ConvertLib.safeAdd(balances[admins[0]], tokens);
-        tokensReceived[admins[0]] =ConvertLib.safeAdd(tokensReceived[admins[0]], tokens);
+        balances[wallet] =ConvertLib.safeAdd(balances[wallet], tokens);
+        tokensReceived[wallet] =ConvertLib.safeAdd(tokensReceived[wallet], tokens);
         balances[user]=ConvertLib.safeSub(balances[user], tokens);
-        Transfer(user, admins[0], tokens);
+        Transfer(user, wallet, tokens);
         
         return (tokens);
         
@@ -212,6 +214,11 @@ contract GoodwillCoin is MintableToken {
         return (balances[user], eth_balance);
     }
     
+    function setWallet(address _wallet) onlyAdmin returns (bool) {
+        wallet=_wallet;
+        return true;                
+    }
+    
     function gcAuth(address user, string name, uint id) onlyAdmin payable returns (uint, uint, uint) {    
         assert(isAdmin[msg.sender]);
         
@@ -221,8 +228,8 @@ contract GoodwillCoin is MintableToken {
             userName[user]=name;
             userId[user]=id;
             balances[user] = ConvertLib.safeAdd(balances[user], tokensToBuy);
-            balances[admins[0]] = ConvertLib.safeSub(balances[admins[0]], tokensToBuy);
-            Transfer(admins[0], user, tokensToBuy);
+            balances[wallet] = ConvertLib.safeSub(balances[wallet], tokensToBuy);
+            Transfer(wallet, user, tokensToBuy);
             
             transaction memory v=transaction(msg.sender, user, now, tokensToBuy, Types.Transfer);
             transactions[msg.sender].push(v);
@@ -343,7 +350,7 @@ contract GoodwillCoin is MintableToken {
             
             mint(beneficiary, tokens);
             
-            forwardFunds(admins[0]);
+            forwardFunds(wallet);
         
         }        
         

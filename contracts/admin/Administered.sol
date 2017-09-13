@@ -8,7 +8,7 @@ pragma solidity ^0.4.11;
  */
 contract Administered {
   mapping (address => bool) isAdmin;
-    
+  mapping (address => bool) isBanned;
   address[] admins;
 
   /**
@@ -28,18 +28,27 @@ contract Administered {
    */
   modifier onlyAdmin() {
     require(isAdmin[msg.sender]);
+    require(!isBanned[msg.sender]);
     _;
   }
   
   function addAdmin(address admin) onlyAdmin {
-        assert(isAdmin[msg.sender]);
+        require(isAdmin[msg.sender]);
+        require(!isBanned[msg.sender]);
         isAdmin[admin]=true;
         admins.push(admin);
   }
+  
+  function addBanned(address banned) onlyAdmin {
+        require(isAdmin[msg.sender]);
+        require(!isBanned[msg.sender]);
+        isBanned[banned]=true;
+  }
 
   function getAdmins() constant returns (address[]) {
-      assert(isAdmin[msg.sender]);
-      return admins;
+        require(isAdmin[msg.sender]);
+        require(!isBanned[msg.sender]);
+        return admins;
   }
 
 
