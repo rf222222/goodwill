@@ -31,14 +31,11 @@ Goodwill Coins:
 
 
 
-Resource Allocation Protocol APIs
+# Resource Allocation Protocol APIs
  Resource Allocation Protocol supports different API commands for users, devices and resource operators.
 
 
-
-
-
-Resource User API
+* Resource User API
 
 Resource User API can be called by any Ethereum account, including normal account and contract ones.
 
@@ -46,6 +43,7 @@ RequestUse(​Resource Reserve Network Addess X, Resource Type Y, Goodwill Coin 
 	X:	Resource Reserve Network Address
 	Y:	Resource Type Y
 	Z:	Resource Token Z
+	
 	Requests usage of resource type Y for token Z, from Resource Contributor X
 
 	For example, users can call RequestUse(0x, “Cloud Storage: 1 GB”, 100) to request usage of resource of type “Cloud Storage: 1GB” for 100 Goodwill Coins
@@ -53,12 +51,11 @@ RequestUse(​Resource Reserve Network Addess X, Resource Type Y, Goodwill Coin 
 
 GetUsage(​Resource Reserve Network  X)
 	X:	Resource Reserve Network Address
+	
 	Returns the available resource for use from resource address X, and other publically identifiable resource related data
 
 
-
-
-Resource Contributor API
+* Resource Contributor API
 
 Reserve Contributor APIs can be called by any account in the Ethereum network, though some API only works if the account already contributed.
 
@@ -71,18 +68,21 @@ The APIs for public resources:
 ListResource(Resource Network Address X, Resource Type Y)
 	X: Resource Network Address
 	Y: Resource Type
+	
 	Introduces Resource in Network X of Type Y
 
 ResourceAdd​ ​(Resource Contributor Address X, Resource Qty Y, Resource Type Z)
 	X: Resource Contributor Address
 	Y: Resource Quantity
 	Z: Resource Type
+	
 	Add a new resource to the network. The resource is managed by the contributor
 
 ResourceRemove​ ​(Resource Contributor Address X, Resource Qty Y, Resource Type Z)
 	X: Resource Contributor Address
 	Y: Resource Quantity
 	Z: Resource Type
+	
 	Remove an existing resource from Resource Allocation Protocol.
 
 Contribute(Resource Type X, Resource Quantity Y, Resource Description Z)
@@ -94,28 +94,33 @@ Contribute(Resource Type X, Resource Quantity Y, Resource Description Z)
 
 
 
-Resource Operator API
+* Resource Operator API
 
 SetResourceTerm(​Resource Network X, Resource Type Y, Goodwill Coin Z)
 	X: Resource Network
 	Y: Resource Type
 	Z: Goodwill Coin
+
 	Update usage terms of Resource Network X, based on existing usage. (Goodwill Coin can be set higher when demand looks to be nearing total supply limit)
 
-2.6.4. Resource Network API
+
+
+* Resource Network API
 
 ListResourceNet(Resource Type X)
 	X: Resource Type
+	
 	Returns Resource Networks for Resource Type X
-
 
 CreateResourceNet​(Resource Network Name X, Resource Network Address Y, Resource Type Z)
 	X: Resource Network Name
 	Y: Resource Network Address
 	Z: Resource Type
+	
 	Creates Resource Network for Resource Type Z in Resource Network Address Y
 
 DelistResourceNet​(Resource Type X, Resource Contributor Address Y)
 	X: Resource Type 		
 	Y: Resource Contributor Address Y
+	
 	To stop accepting usage of resource Type X
