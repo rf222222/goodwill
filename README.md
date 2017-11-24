@@ -40,6 +40,7 @@ Goodwill Coins:
 Resource User API can be called by any Ethereum account, including normal account and contract ones.
 
 RequestUse(​Resource Reserve Network Addess X, Resource Type Y, Goodwill Coin Z)
+	
 	X:	Resource Reserve Network Address
 	Y:	Resource Type Y
 	Z:	Resource Token Z
@@ -50,6 +51,7 @@ RequestUse(​Resource Reserve Network Addess X, Resource Type Y, Goodwill Coin 
 	Successful request will result in usage instructions being returned
 
 GetUsage(​Resource Reserve Network  X)
+	
 	X:	Resource Reserve Network Address
 	
 	Returns the available resource for use from resource address X, and other publically identifiable resource related data
@@ -66,12 +68,14 @@ There will be two different resource types in Resource Allocation Protocol:
 The APIs for public resources:
 
 ListResource(Resource Network Address X, Resource Type Y)
+	
 	X: Resource Network Address
 	Y: Resource Type
 	
 	Introduces Resource in Network X of Type Y
 
 ResourceAdd​ ​(Resource Contributor Address X, Resource Qty Y, Resource Type Z)
+	
 	X: Resource Contributor Address
 	Y: Resource Quantity
 	Z: Resource Type
@@ -79,6 +83,7 @@ ResourceAdd​ ​(Resource Contributor Address X, Resource Qty Y, Resource Type
 	Add a new resource to the network. The resource is managed by the contributor
 
 ResourceRemove​ ​(Resource Contributor Address X, Resource Qty Y, Resource Type Z)
+	
 	X: Resource Contributor Address
 	Y: Resource Quantity
 	Z: Resource Type
@@ -86,6 +91,7 @@ ResourceRemove​ ​(Resource Contributor Address X, Resource Qty Y, Resource T
 	Remove an existing resource from Resource Allocation Protocol.
 
 Contribute(Resource Type X, Resource Quantity Y, Resource Description Z)
+	
 	X: Resource Type
 	Y: Resource Quantity
 	Z: Resource Description
@@ -97,6 +103,7 @@ Contribute(Resource Type X, Resource Quantity Y, Resource Description Z)
 * Resource Operator API
 
 SetResourceTerm(​Resource Network X, Resource Type Y, Goodwill Coin Z)
+	
 	X: Resource Network
 	Y: Resource Type
 	Z: Goodwill Coin
@@ -108,11 +115,13 @@ SetResourceTerm(​Resource Network X, Resource Type Y, Goodwill Coin Z)
 * Resource Network API
 
 ListResourceNet(Resource Type X)
+	
 	X: Resource Type
 	
 	Returns Resource Networks for Resource Type X
 
 CreateResourceNet​(Resource Network Name X, Resource Network Address Y, Resource Type Z)
+	
 	X: Resource Network Name
 	Y: Resource Network Address
 	Z: Resource Type
@@ -120,6 +129,7 @@ CreateResourceNet​(Resource Network Name X, Resource Network Address Y, Resour
 	Creates Resource Network for Resource Type Z in Resource Network Address Y
 
 DelistResourceNet​(Resource Type X, Resource Contributor Address Y)
+	
 	X: Resource Type 		
 	Y: Resource Contributor Address Y
 	
