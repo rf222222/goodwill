@@ -1,5 +1,7 @@
 # Goodwill Protocol & Resource Allocation Protocol Smart Contracts
 
+Resource Allocation Protocol: https://drive.google.com/file/d/19Ptsp5hrdN3LpL7gqMA9OwIicUPe9TGG/view?usp=sharing
+
 Petitions:  Crowd sourced enforcement of a goal, when local decision maker the petitioner's facing does not align with SDGs.
 
 Pledges: Promise for collective action on a set goal by those who agree with the cause,
