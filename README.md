@@ -1,7 +1,4 @@
 # Goodwill Protocol & Resource Allocation Protocol Smart Contracts
-Goodwill Economy are driven by Goodwill Coins Smart Contracts that work together to push forward and realize a cause, idea or vision. While most activities are available via BEGINNING’s user friendly site, https://beginning.world, for users familiar with Ethereum Smart Contracts, direct interaction with Goodwill Coins Smart Contract API is also possible. 
-
-BEGINNING also provides an optional white-label for Goodwill Coins ICO participants to re-brand the BEGINNING platform to use the Smart Contracts’ capabilities to service the population in its jurisdiction.
 
 Petitions:  Crowd sourced enforcement of a goal, when local decision maker the petitioner's facing does not align with SDGs.
 
